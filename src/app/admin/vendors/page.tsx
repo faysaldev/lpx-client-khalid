@@ -5,7 +5,6 @@ import {
   Calendar,
   CheckCircle,
   Clock,
-  Download,
   Eye,
   MapPin,
   MoreHorizontal,
@@ -58,6 +57,7 @@ export default function VendorsManagement() {
   );
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [fetchAgain, setFetchAgain] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -197,6 +197,7 @@ export default function VendorsManagement() {
     setSelectedVendor(null);
     setReviewAction(null);
     setReviewNotes("");
+    setFetchAgain((e) => !e);
 
     const actionText = reviewAction === "approve" ? "approved" : "rejected";
     toast.success(`Vendor ${selectedVendor.storeName} has been ${actionText}`, {
@@ -269,7 +270,7 @@ export default function VendorsManagement() {
       }
     };
     fetchVendors();
-  }, [vendorStatus, searchQuery, currentPage, searchVendor]);
+  }, [vendorStatus, searchQuery, currentPage, searchVendor, fetchAgain]);
 
   // Generate pagination buttons
   const renderPaginationButtons = () => {

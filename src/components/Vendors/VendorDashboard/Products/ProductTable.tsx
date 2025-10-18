@@ -63,21 +63,20 @@ export function ProductTable({
   onView: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
-  const [editingField, setEditingField] = useState<{
-    productId: string;
-    field: string;
-    value: any;
-  } | null>(null);
+  const [editingProduct, setEditingProduct] = useState<string | null>(null);
+  const [editedValues, setEditedValues] = useState<{
+    [key: string]: {
+      price?: number;
+      stockQuantity?: number;
+      status?: string;
+    };
+  }>({});
 
   const [updatingProduct] = useProductUpdateMutation();
 
-  const [editedValues, setEditedValues] = useState<{
-    [key: string]: any;
-  }>({});
-
   const getStatusBadge = (isDraft: boolean, inStock: boolean) => {
     if (isDraft) {
-      return <Badge variant="secondary">Draft</Badge>;
+      return <Badge variant="secondary">Inactive</Badge>;
     }
     if (!inStock) {
       return <Badge variant="destructive">Out of Stock</Badge>;
@@ -85,31 +84,32 @@ export function ProductTable({
     return <Badge className="bg-green-100 text-green-800">Active</Badge>;
   };
 
-  const handleDoubleClick = (
-    productId: string,
-    field: string,
-    currentValue: any
-  ) => {
-    setEditingField({ productId, field, value: currentValue });
+  const getCurrentStatus = (product: Product) => {
+    if (product.isDraft) return "draft";
+    if (!product.inStock) return "out_of_stock";
+    return "active";
+  };
+
+  const startEditing = (productId: string) => {
+    setEditingProduct(productId);
+  };
+
+  const cancelEditing = (productId: string) => {
+    setEditingProduct(null);
+    setEditedValues((prev) => {
+      const newValues = { ...prev };
+      delete newValues[productId];
+      return newValues;
+    });
+  };
+
+  const handleInputChange = (productId: string, field: string, value: any) => {
     setEditedValues((prev) => ({
       ...prev,
       [productId]: {
         ...prev[productId],
-        [field]: currentValue,
-      },
-    }));
-  };
-
-  const handleInputChange = (value: string) => {
-    if (!editingField) return;
-
-    setEditedValues((prev) => ({
-      ...prev,
-      [editingField.productId]: {
-        ...prev[editingField.productId],
-        [editingField.field]:
-          editingField.field === "price" ||
-          editingField.field === "stockQuantity"
+        [field]:
+          field === "price" || field === "stockQuantity"
             ? Number(value)
             : value,
       },
@@ -118,150 +118,143 @@ export function ProductTable({
 
   const handleSave = async (product: Product) => {
     const changes = editedValues[product._id];
-    console.log(product, "single product");
 
     if (changes) {
-      console.log("Saving changes for product:", product._id, changes);
-
-      // Conditionally construct the `data` object
       const data: any = {};
 
-      // Update `inStock` if it has changed, otherwise leave it unchanged
-      console.log(changes,"changes")
-      if (changes.status && changes.status !== product.isDraft) {
-        data.isDraft = changes.status === "active" ? false : true;
+      // Handle status changes
+      if (changes.status && changes.status !== getCurrentStatus(product)) {
+        if (changes.status === "active") {
+          data.isDraft = false;
+          data.inStock = true;
+        } else if (changes.status === "draft") {
+          data.isDraft = true;
+        } else if (changes.status === "out_of_stock") {
+          data.inStock = false;
+          data.isDraft = false;
+        }
       }
 
-      // Update `stockQuantity` if it has changed, otherwise leave it unchanged
+      // Handle stock quantity changes
       if (
-        changes.stockQuantity &&
+        changes.stockQuantity !== undefined &&
         changes.stockQuantity !== product.stockQuantity
       ) {
         data.stockQuantity = changes.stockQuantity;
+        // Auto update inStock based on stock quantity
+        if (changes.stockQuantity === 0) {
+          data.inStock = false;
+        } else if (changes.stockQuantity > 0 && !product.inStock) {
+          data.inStock = true;
+        }
       }
 
-      // Update `price` if it has changed, otherwise leave it unchanged
-      if (changes.price && changes.price !== product.price) {
+      // Handle price changes
+      if (changes.price !== undefined && changes.price !== product.price) {
         data.price = changes.price;
       }
 
-      // Only send the `data` if there are any changes
+      // Only send request if there are changes
       if (Object.keys(data).length > 0) {
-        await updatingProduct({ id: product._id, data });
-        console.log("Product updated:", data);
-      } else {
-        console.log("No changes detected for product:", product._id);
+        try {
+          await updatingProduct({ id: product._id, data }).unwrap();
+          console.log("Product updated successfully");
+        } catch (error) {
+          console.error("Failed to update product:", error);
+        }
       }
     }
 
     // Reset editing state
-    setEditingField(null);
-    setEditedValues((prev) => {
-      const newValues = { ...prev };
-      delete newValues[product._id];
-      return newValues;
-    });
-  };
-
-  const handleCancel = (product: Product) => {
-    setEditingField(null);
-    setEditedValues((prev) => {
-      const newValues = { ...prev };
-      delete newValues[product._id];
-      return newValues;
-    });
-  };
-
-  const isEditing = (productId: string, field: string) => {
-    return (
-      editingField?.productId === productId && editingField?.field === field
-    );
+    cancelEditing(product._id);
   };
 
   const hasChanges = (productId: string) => {
-    return !!editedValues[productId];
+    return (
+      !!editedValues[productId] &&
+      Object.keys(editedValues[productId]).length > 0
+    );
   };
 
-  const renderEditableCell = (
-    product: Product,
-    field: string,
-    displayValue: any
-  ) => {
-    if (isEditing(product._id, field)) {
+  const isEditing = (productId: string) => {
+    return editingProduct === productId;
+  };
+
+  const renderPriceCell = (product: Product) => {
+    if (isEditing(product._id)) {
+      return (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">AED</span>
+          <Input
+            type="number"
+            value={editedValues[product._id]?.price ?? product.price}
+            onChange={(e) =>
+              handleInputChange(product._id, "price", e.target.value)
+            }
+            className="h-8 w-24"
+            min="0"
+            step="0.01"
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className="cursor-pointer px-3 py-2 rounded-md border"
+        onClick={() => startEditing(product._id)}
+      >
+        AED {product.price}
+      </div>
+    );
+  };
+
+  const renderStockCell = (product: Product) => {
+    if (isEditing(product._id)) {
       return (
         <Input
-          type={
-            field === "price" || field === "stockQuantity" ? "number" : "text"
+          type="number"
+          value={
+            editedValues[product._id]?.stockQuantity ?? product.stockQuantity
           }
-          value={editedValues[product._id]?.[field] ?? displayValue}
-          onChange={(e) => handleInputChange(e.target.value)}
-          className="h-8 w-24"
-          autoFocus
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              handleSave(product);
-            } else if (e.key === "Escape") {
-              handleCancel(product);
-            }
-          }}
+          onChange={(e) =>
+            handleInputChange(product._id, "stockQuantity", e.target.value)
+          }
+          className="h-8 w-20"
+          min="0"
         />
       );
     }
 
     return (
       <div
-        onDoubleClick={() =>
-          handleDoubleClick(product._id, field, displayValue)
-        }
-        className="cursor-pointer px-2 py-1 rounded transition-colors"
+        className="cursor-pointer px-3 py-2 rounded-md border "
+        onClick={() => startEditing(product._id)}
       >
-        {field === "price" ? `AED ${displayValue}` : displayValue}
+        {product.stockQuantity}
       </div>
     );
   };
 
-  const renderStatusEditableCell = (product: Product) => {
-    if (isEditing(product._id, "status")) {
-      const currentStatus = product.isDraft
-        ? "draft"
-        : !product.inStock
-        ? "out_of_stock"
-        : "active";
+  const renderStatusCell = (product: Product) => {
+    const currentStatus = getCurrentStatus(product);
 
-      const getStatusDisplayText = (status: string) => {
-        switch (status) {
-          case "active":
-            return "active";
-          case "out_of_stock":
-            return "Out of Stock";
-          default:
-            return "Status";
-        }
-      };
-
-      const displayStatus = editedValues[product._id]?.isDraft ?? currentStatus;
-       console.log('displayStatus', displayStatus)
-
+    if (isEditing(product._id)) {
       return (
         <Select
-          value={displayStatus}
-          onValueChange={(newStatus) => {
-            setEditedValues((prev) => ({
-              ...prev,
-              [product._id]: {
-                ...prev[product._id],
-                status: newStatus,
-              },
-            }));
-          }}
+          value={editedValues[product._id]?.status ?? currentStatus}
+          onValueChange={(value) =>
+            handleInputChange(product._id, "status", value)
+          }
         >
           <SelectTrigger className="w-[140px] h-8">
-            <SelectValue>{getStatusDisplayText(displayStatus)}</SelectValue>
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
               <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inActive">In Active</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="out_of_stock">Out of Stock</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -269,10 +262,7 @@ export function ProductTable({
     }
 
     return (
-      <div
-        onDoubleClick={() => handleDoubleClick(product._id, "status", product)}
-        className="cursor-pointer"
-      >
+      <div className="cursor-pointer" onClick={() => startEditing(product._id)}>
         {getStatusBadge(product.isDraft, product.inStock)}
       </div>
     );
@@ -327,46 +317,40 @@ export function ProductTable({
               </TableCell>
 
               <TableCell>
-                {renderEditableCell(
-                  product,
-                  "category",
-                  product.category || "N/A"
-                )}
+                <div className="px-3 py-2 w-28 truncate">
+                  {product.category || "N/A"}
+                </div>
               </TableCell>
 
               <TableCell className="font-medium">
-                {renderEditableCell(product, "price", product.price)}
+                {renderPriceCell(product)}
               </TableCell>
 
-              <TableCell>
-                {renderEditableCell(
-                  product,
-                  "stockQuantity",
-                  product.stockQuantity
-                )}
-              </TableCell>
+              <TableCell>{renderStockCell(product)}</TableCell>
 
-              <TableCell>{renderStatusEditableCell(product)}</TableCell>
+              <TableCell>{renderStatusCell(product)}</TableCell>
 
               <TableCell>{product.vendor?.storeName || "N/A"}</TableCell>
 
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">
-                  {hasChanges(product._id) && (
+                  {isEditing(product._id) && hasChanges(product._id) && (
                     <>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleSave(product)}
-                        className="h-8 px-2 text-green-600 border-green-200 hover:bg-green-50"
+                        className="h-8 w-8 p-0 text-green-600 border-green-200 "
+                        title="Save changes"
                       >
                         <Save className="h-4 w-4" />
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleCancel(product)}
-                        className="h-8 px-2 text-red-600 border-red-200 hover:bg-red-50"
+                        onClick={() => cancelEditing(product._id)}
+                        className="h-8 w-8 p-0 text-red-600 border-red-200"
+                        title="Cancel changes"
                       >
                         <X className="h-4 w-4" />
                       </Button>
