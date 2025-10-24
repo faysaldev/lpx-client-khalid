@@ -11,7 +11,6 @@ import {
   Package,
   Star,
   Store,
-  TrendingUp,
   Users,
 } from "lucide-react";
 
@@ -22,10 +21,7 @@ export default function VendorCard({
   vendor: Vendor;
   viewMode: "grid" | "list";
 }) {
-  const imageUrl =
-    vendor?.storePhoto && process.env.NEXT_PUBLIC_BASE_URL
-      ? `${process.env.NEXT_PUBLIC_BASE_URL}${vendor.storePhoto}`
-      : null;
+  const imageUrl = vendor?.storePhoto ? `${vendor.storePhoto}` : null;
 
   if (viewMode === "list") {
     return (
@@ -67,20 +63,6 @@ export default function VendorCard({
                     {vendor.description}
                   </p>
 
-                  {/* {vendor.specialties?.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {vendor.specialties.map((specialty: string) => (
-                        <Badge
-                          key={specialty}
-                          variant="outline"
-                          className="text-xs"
-                        >
-                          {specialty}
-                        </Badge>
-                      ))}
-                    </div>
-                  )} */}
-
                   <div className="flex flex-wrap gap-4 text-sm">
                     <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 text-yellow-400 fill-current" />
@@ -121,7 +103,7 @@ export default function VendorCard({
 
   return (
     <Link href={`/vendor/${vendor.id}`}>
-      <div className="group rounded-lg border hover:shadow-lg transition-all  h-full flex flex-col">
+      <div className="group rounded-lg border hover:shadow-lg transition-all h-full flex flex-col">
         <div className="flex items-start justify-between mb-4 ">
           <div className="w-full">
             {imageUrl ? (

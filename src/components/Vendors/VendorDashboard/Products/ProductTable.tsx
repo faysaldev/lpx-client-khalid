@@ -252,7 +252,9 @@ export function ProductTable({
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value="active">Active</SelectItem>
+              {product?.stockQuantity > 0 && (
+                <SelectItem value="active">Active</SelectItem>
+              )}
               <SelectItem value="draft">Draft</SelectItem>
               <SelectItem value="out_of_stock">Out of Stock</SelectItem>
             </SelectGroup>
@@ -295,7 +297,7 @@ export function ProductTable({
                 <Image
                   src={
                     product.images?.[0]
-                      ? `${process.env.NEXT_PUBLIC_BASE_URL}/${product.images[0]}`
+                      ? `${product.images[0]}`
                       : "/placeholder.jpg"
                   }
                   alt={product.productName}

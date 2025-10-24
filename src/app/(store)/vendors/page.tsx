@@ -1,14 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-
-import { Filter, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import PageLayout from "@/components/layout/PageLayout";
 import { EmptyStates } from "@/components/shared/EmptyState";
-
-import { Badge } from "@/components/UI/badge";
-import { Button } from "@/components/UI/button";
 import { Label } from "@/components/UI/label";
 
 import {
@@ -67,6 +62,10 @@ export default function VendorsPage() {
         return "products-count";
       case "byRatings":
         return "by-ratings";
+      case "Oldest":
+        return "oldest";
+      case "TopVendor":
+        return "topVendor";
       default:
         return "newest";
     }
@@ -281,7 +280,7 @@ export default function VendorsPage() {
 
       {/* Pagination */}
       {totalVendors > itemsPerPage && (
-        <div className="mt-8 pt-6 border-t border-border">
+        <div className="mt-8">
           <VendorPagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -295,6 +294,3 @@ export default function VendorsPage() {
     </PageLayout>
   );
 }
-
-
-

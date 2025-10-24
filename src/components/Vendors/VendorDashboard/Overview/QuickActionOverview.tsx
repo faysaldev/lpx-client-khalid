@@ -67,11 +67,11 @@ function QuickActionOverview({
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Products</span>
-              <span>{AllStats.activeProducts} active</span>
+              <span>{AllStats?.activeProducts} active</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Orders</span>
-              <span>{AllStats.totalOrders} total</span>
+              <span>{AllStats?.totalOrders} total</span>
             </div>
           </div>
         </CardContent>
@@ -83,25 +83,21 @@ function QuickActionOverview({
           <CardDescription>Latest customer orders</CardDescription>
         </CardHeader>
         <CardContent>
-          {AllRecentOrders.length === 0 ? (
+          {AllRecentOrders?.length === 0 ? (
             <div className="text-center py-8">
               <ShoppingCart className="h-8 w-8 mx-auto mb-4 text-muted-foreground/50" />
               <p className="text-sm text-muted-foreground">No recent orders</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {AllRecentOrders.slice(0, 3).map((order: any) => (
+              {AllRecentOrders?.slice(0, 3).map((order: any) => (
                 <div
                   key={order.orderMongoId} // changed from order.id to order.orderMongoId
                   className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
                 >
                   <div className="flex items-center gap-3">
                     <Image
-                      src={
-                        order.userImage
-                          ? `${process.env.NEXT_PUBLIC_BASE_URL}${order.userImage}`
-                          : ""
-                      } // changed from order.customer.avatar to order.userImage
+                      src={order.userImage ? `${order.userImage}` : ""} // changed from order.customer.avatar to order.userImage
                       alt={order.userName} // changed from order.customer.name to order.userName
                       width={32}
                       height={32}

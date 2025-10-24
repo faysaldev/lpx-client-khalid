@@ -47,19 +47,6 @@ const rawConditions = [
   "Poor",
 ];
 
-const rarities = [
-  "Common",
-  "Uncommon",
-  "Rare",
-  "Super Rare",
-  "Ultra Rare",
-  "Secret Rare",
-  "Legendary",
-  "Mythic",
-  "Promo",
-  "First Edition",
-];
-
 // Image Upload Section Component
 interface ImageUploadSectionProps {
   images: File[];
@@ -67,7 +54,6 @@ interface ImageUploadSectionProps {
   existingImages?: string[];
   onExistingImagesChange?: (images: string[]) => void;
 }
-
 const ImageUploadSection = ({
   images,
   onImagesChange,
@@ -81,7 +67,7 @@ const ImageUploadSection = ({
     if (existingImages && existingImages.length > 0) {
       const formattedImages = existingImages.map((img) => {
         const cleanPath = img.replace(/\\/g, "/");
-        return `${process.env.NEXT_PUBLIC_BASE_URL}/${cleanPath}`;
+        return `${cleanPath}`;
       });
       setExistingPreviews(formattedImages);
     }
@@ -90,8 +76,7 @@ const ImageUploadSection = ({
   useEffect(() => {
     if (onExistingImagesChange) {
       const originalPaths = existingPreviews.map((preview) => {
-        const baseUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/`;
-        return preview.replace(baseUrl, "").replace(/\//g, "\\");
+        return preview;
       });
       onExistingImagesChange(originalPaths);
     }
@@ -330,7 +315,6 @@ const ImageUploadSection = ({
     </Card>
   );
 };
-
 const NewProductPage = () => {
   const { id } = useParams<{ id: string }>();
   const { data, isLoading } = useGetSingleProductQuery(id);
@@ -346,7 +330,6 @@ const NewProductPage = () => {
   const [optionalPrice, setOptionalPrice] = useState("");
   const [category, setCategory] = useState("");
   const [condition, setCondition] = useState("");
-  const [rarity, setRarity] = useState("");
   const [brand, setBrand] = useState("");
   const [stockQuantity, setStockQuantity] = useState("1");
   const [isDraft, setIsDraft] = useState(true);
@@ -378,7 +361,6 @@ const NewProductPage = () => {
       );
       setCategory(singleData.category || "");
       setCondition(singleData.condition || "");
-      setRarity(singleData.rarity || "");
       setBrand(singleData.brand || "");
       setStockQuantity(String(singleData.stockQuantity || 1));
       setIsDraft(Boolean(singleData.isDraft));
@@ -443,10 +425,6 @@ const NewProductPage = () => {
       newErrors.condition = "Condition is required";
     }
 
-    if (!rarity) {
-      newErrors.rarity = "Rarity is required";
-    }
-
     const stockNum = parseInt(stockQuantity);
     if (!stockQuantity || isNaN(stockNum) || stockNum < 1) {
       newErrors.stockQuantity = "Stock must be at least 1";
@@ -474,7 +452,6 @@ const NewProductPage = () => {
       formData.append("price", price);
       formData.append("category", category);
       formData.append("condition", condition);
-      formData.append("rarity", rarity);
       formData.append("stockQuantity", stockQuantity);
       formData.append("isDraft", String(isDraft));
       formData.append("acceptOffers", String(acceptOffers));
@@ -709,28 +686,6 @@ const NewProductPage = () => {
                   </p>
                 )}
               </div>
-
-              <div>
-                <Label htmlFor="rarity">Rarity *</Label>
-                <Select value={rarity} onValueChange={setRarity}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select rarity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {rarities.map((r) => (
-                      <SelectItem key={r} value={r}>
-                        {r}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.rarity && (
-                  <p className="text-sm text-destructive mt-1">
-                    {errors.rarity}
-                  </p>
-                )}
-              </div>
-
               <div>
                 <Label htmlFor="brand">Brand/Manufacturer</Label>
                 <Input
@@ -970,5 +925,4 @@ const NewProductPage = () => {
     </PageLayout>
   );
 };
-
 export default NewProductPage;

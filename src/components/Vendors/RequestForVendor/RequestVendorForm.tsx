@@ -1,6 +1,5 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { Button } from "@/components/UI/button";
 import { Checkbox } from "@/components/UI/checkbox";
 import { Input } from "@/components/UI/input";
@@ -17,7 +16,7 @@ import { selectCurrentUser } from "@/redux/features/auth/authSlice";
 import { useAllCategoriesQuery } from "@/redux/features/BrowseCollectibles/BrowseCollectibles";
 import { useVendorCreateMutation } from "@/redux/features/vendors/vendor";
 import { useAppSelector } from "@/redux/hooks";
-import { X, Plus, Upload, MapPin, Phone, Globe } from "lucide-react";
+import { X, Plus, Upload, MapPin, Globe } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -36,10 +35,6 @@ interface SocialMediaEntry {
   username: string;
 }
 
-interface StorePolicies {
-  returnPolicy: string;
-  shippingPolicy: string;
-}
 function RequestVendorForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,8 +44,7 @@ function RequestVendorForm() {
   const currentUser = useAppSelector(selectCurrentUser);
 
   const [vendorCreationApplication] = useVendorCreateMutation();
-  const { data: categoriesData, isLoading: categoriesLoading } =
-    useAllCategoriesQuery({});
+  const { data: categoriesData } = useAllCategoriesQuery({});
   // Add new social media entry
   const addSocialMedia = () => {
     setSocialMedia([...socialMedia, { type: "facebook", username: "" }]);
@@ -116,9 +110,7 @@ function RequestVendorForm() {
       setIsSubmitting(false);
       return toast.error("Store image Is required");
     }
-
     const form = e.currentTarget;
-
     // Get form values
     const name = currentUser?.name?.split(" ");
     console.log(name, "im the name");
@@ -131,9 +123,7 @@ function RequestVendorForm() {
     const contactEmail = (
       form.elements.namedItem("contactEmail") as HTMLInputElement
     ).value;
-    const phoneNumber = (
-      form.elements.namedItem("phoneNumber") as HTMLInputElement
-    ).value;
+    const phoneNumber = currentUser?.phoneNumber ?? "";
 
     const location = (form.elements.namedItem("location") as HTMLInputElement)
       .value;
@@ -274,44 +264,30 @@ function RequestVendorForm() {
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="contactEmail">Business Email *</Label>
-            <Input
-              name="contactEmail"
-              id="contactEmail"
-              type="email"
-              placeholder="business@example.com"
-              required
-              className="mt-1"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="phoneNumber">Phone Number *</Label>
-            <div className="relative mt-1">
-              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <div className="grid grid-cols-2 gap-x-2">
+            <div>
+              <Label htmlFor="contactEmail">Business Email *</Label>
               <Input
-                name="phoneNumber"
-                id="phoneNumber"
-                type="tel"
-                placeholder="+1 (555) 123-4567"
+                name="contactEmail"
+                id="contactEmail"
+                type="email"
+                placeholder="business@example.com"
                 required
-                className="pl-10"
+                className="mt-1"
               />
             </div>
-          </div>
-
-          <div className="md:col-span-2">
-            <Label htmlFor="location">Business Location *</Label>
-            <div className="relative mt-1">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                name="location"
-                id="location"
-                placeholder="City, State, Country"
-                required
-                className="pl-10"
-              />
+            <div className="">
+              <Label htmlFor="location">Business Location *</Label>
+              <div className="relative mt-1">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  name="location"
+                  id="location"
+                  placeholder="City, State, Country"
+                  required
+                  className="pl-10"
+                />
+              </div>
             </div>
           </div>
 

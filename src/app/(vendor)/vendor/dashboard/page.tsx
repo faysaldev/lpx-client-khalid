@@ -2,7 +2,6 @@
 "use client";
 import {
   BarChart3,
-  DollarSign,
   Eye,
   Package,
   Plus,
@@ -40,7 +39,7 @@ import {
 } from "@/redux/features/Common/CommonSlice";
 
 const VendorDashboardPage = () => {
-  const [activeTab, setActiveTab] = useState("products");
+  const [activeTab, setActiveTab] = useState("overview");
   const { data: VendorDashboardStats } = useVendorDashboardOverviewQuery({});
 
   const AllStats = VendorDashboardStats?.data?.stats;

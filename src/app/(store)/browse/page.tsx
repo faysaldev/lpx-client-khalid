@@ -3,7 +3,6 @@
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-
 import { cn } from "@/lib/utils";
 import { Category, Product } from "@/lib/types";
 import { useBrowseFilters } from "@/hooks/useBrowseFilters";
@@ -431,7 +430,7 @@ function BrowsePageContent() {
 
       {/* Pagination */}
       {backendFilteredProducts.length > 0 && (
-        <div className="mt-8 pt-6 border-t border-border">
+        <div className="mt-8">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

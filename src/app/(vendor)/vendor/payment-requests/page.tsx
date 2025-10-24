@@ -47,6 +47,7 @@ export default function VendorPaymentRequestsPage() {
   const searchQuery = searchParams?.get("search") || "";
   const statusFilter = searchParams?.get("status") || "";
   const sortBy = searchParams?.get("sort") || "latest";
+  const [statusVal, setStatusVal] = useState("");
 
   // Fetch payment requests with all filters
   const {
@@ -56,11 +57,9 @@ export default function VendorPaymentRequestsPage() {
   } = useMyPaymentRequestQuery({
     search: searchQuery,
     page,
-    status: statusFilter,
+    status: statusVal, 
     sort: sortBy,
   });
-
-  console.log(page, statusFilter, sortBy);
 
   // Fetch stats
   const { data: paymentRequestStats } = useGetPaymeRequestStatsQuery({});
@@ -107,7 +106,8 @@ export default function VendorPaymentRequestsPage() {
   };
   // Handle status filter
   const handleStatusFilter = (value: string) => {
-    updateURL({ status: value, page: "1" });
+    setStatusVal(value);
+    updateURL({ status: value, page: "1" }); // Ensure status is updated in the URL
   };
 
   // Handle sort
