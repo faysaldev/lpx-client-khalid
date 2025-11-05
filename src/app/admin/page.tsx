@@ -9,7 +9,6 @@ import {
   Eye,
   Package,
   ShoppingCart,
-  Star,
   Store,
   Users,
 } from "lucide-react";
