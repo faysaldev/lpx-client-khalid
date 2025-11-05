@@ -452,7 +452,6 @@ export default function AdminDashboard() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Vendor</TableHead>
-                  <TableHead className="text-center">Total Sales</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -473,12 +472,6 @@ export default function AdminDashboard() {
                     <TableRow key={vendor._id}>
                       <TableCell className="font-medium">
                         {vendor.storeName}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        AED{" "}
-                        {(
-                          formatNumber(vendor.totalEarnings) || 0
-                        ).toLocaleString()}
                       </TableCell>
                     </TableRow>
                   ))
