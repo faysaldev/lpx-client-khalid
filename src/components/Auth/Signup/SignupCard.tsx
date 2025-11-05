@@ -83,7 +83,6 @@ function SignupCard() {
       }, 1000);
     } catch (err: any) {
       // Catch other errors (network issues, etc.)
-      console.log(err, "Error section");
       toast(
         err?.response?.data?.message ||
           "Something went wrong. Please try again."
@@ -177,15 +176,15 @@ function SignupCard() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     aria-label={
                       showPassword ? "Hide password" : "Show password"
                     }
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
                       <Eye className="h-4 w-4" />
+                    ) : (
+                      <EyeOff className="h-4 w-4" />
                     )}
                   </button>
                 </div>
@@ -208,15 +207,15 @@ function SignupCard() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     aria-label={
                       showConfirmPassword ? "Hide password" : "Show password"
                     }
                   >
                     {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
                       <Eye className="h-4 w-4" />
+                    ) : (
+                      <EyeOff className="h-4 w-4" />
                     )}
                   </button>
                 </div>

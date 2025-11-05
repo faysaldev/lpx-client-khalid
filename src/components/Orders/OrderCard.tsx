@@ -11,6 +11,11 @@ import {
   RefreshCw,
   Truck,
   XCircle,
+  Clock,
+  Package,
+  Home,
+  RotateCcw,
+  Calendar,
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/UI/badge";
@@ -21,36 +26,178 @@ import { useState, useEffect } from "react";
 import { downloadInvoiceHealper } from "@/lib/utils/downloadInvoice";
 import { selectToken } from "@/redux/features/auth/authSlice";
 import { useAppSelector } from "@/redux/hooks";
-import { OrderStatus } from "@/lib/types";
+
 import Image from "next/image";
 
+// Extended status configuration to cover all possible statuses
 const statusConfig: Record<
-  OrderStatus,
-  { label: string; icon: React.ElementType; color: string }
+  string,
+  {
+    label: string;
+    icon: React.ElementType;
+    color: string;
+    variant?: "default" | "secondary" | "destructive" | "outline";
+  }
 > = {
-  confirmed: { label: "confirmed", icon: RefreshCw, color: "bg-blue-500" },
-  shipped: { label: "Shipped", icon: Truck, color: "bg-purple-500" },
-  delivered: { label: "Delivered", icon: CheckCircle, color: "bg-green-500" },
-  cancelled: { label: "Cancelled", icon: XCircle, color: "bg-red-500" },
+  // Payment status
+  unpaid: {
+    label: "Unpaid",
+    icon: Clock,
+    color: "bg-yellow-500",
+    variant: "secondary",
+  },
+
+  // Order processing statuses
+  confirmed: {
+    label: "Confirmed",
+    icon: CheckCircle,
+    color: "bg-blue-500",
+    variant: "secondary",
+  },
+
+  // Shipping and delivery statuses
+  "Pickup Scheduled": {
+    label: "Pickup Scheduled",
+    icon: Calendar,
+    color: "bg-purple-500",
+    variant: "secondary",
+  },
+  Pickup: {
+    label: "Pickup",
+    icon: Truck,
+    color: "bg-indigo-500",
+    variant: "secondary",
+  },
+  Scheduled: {
+    label: "Scheduled",
+    icon: Calendar,
+    color: "bg-indigo-500",
+    variant: "secondary",
+  },
+  "Pickup Completed": {
+    label: "Pickup Completed",
+    icon: CheckCircle,
+    color: "bg-green-500",
+    variant: "secondary",
+  },
+  "Not Picked Up": {
+    label: "Not Picked Up",
+    icon: XCircle,
+    color: "bg-red-500",
+    variant: "destructive",
+  },
+  "Inscan At Hub": {
+    label: "Inscan At Hub",
+    icon: Package,
+    color: "bg-blue-500",
+    variant: "secondary",
+  },
+  "Out For Delivery": {
+    label: "Out For Delivery",
+    icon: Truck,
+    color: "bg-orange-500",
+    variant: "secondary",
+  },
+  Delivered: {
+    label: "Delivered",
+    icon: CheckCircle,
+    color: "bg-green-500",
+    variant: "default",
+  },
+  Undelivered: {
+    label: "Undelivered",
+    icon: XCircle,
+    color: "bg-red-500",
+    variant: "destructive",
+  },
+
+  // Special statuses
+  "On-Hold": {
+    label: "On Hold",
+    icon: Clock,
+    color: "bg-yellow-500",
+    variant: "secondary",
+  },
+  "Reached At Hub": {
+    label: "Reached At Hub",
+    icon: Home,
+    color: "bg-blue-500",
+    variant: "secondary",
+  },
+  RTO: {
+    label: "RTO",
+    icon: RotateCcw,
+    color: "bg-red-500",
+    variant: "destructive",
+  },
+  "RTO Delivered": {
+    label: "RTO Delivered",
+    icon: CheckCircle,
+    color: "bg-green-500",
+    variant: "default",
+  },
+
+  // Cancellation statuses
+  Cancelled: {
+    label: "Cancelled",
+    icon: XCircle,
+    color: "bg-red-500",
+    variant: "destructive",
+  },
+  cancelled: {
+    label: "Cancelled",
+    icon: XCircle,
+    color: "bg-red-500",
+    variant: "destructive",
+  },
+
+  // Other statuses
+  "Order Updated": {
+    label: "Order Updated",
+    icon: RefreshCw,
+    color: "bg-blue-500",
+    variant: "secondary",
+  },
+  Rescheduled: {
+    label: "Rescheduled",
+    icon: Calendar,
+    color: "bg-purple-500",
+    variant: "secondary",
+  },
 };
 
-function OrderCard({ order }: { order: any; onReorder: (order: any) => void }) {
+// Default status for unknown statuses
+const defaultStatusConfig = {
+  label: "Processing",
+  icon: RefreshCw,
+  color: "bg-gray-500",
+  variant: "secondary" as const,
+};
+
+function OrderCard({
+  order,
+}: {
+  order: any;
+  onReorder?: (order: any) => void;
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const status = statusConfig[order.status as OrderStatus];
-  const StatusIcon = status?.icon;
+
+  // Safely get status configuration with fallback
+  const status = statusConfig[order.status] || defaultStatusConfig;
+  const StatusIcon = status.icon;
   const token = useAppSelector(selectToken);
 
   const downloadInvoice = async () => {
-    await downloadInvoiceHealper({ token: token ?? "", orderId: order?._id });
+    if (token) {
+      await downloadInvoiceHealper({ token, orderId: order?._id });
+    }
   };
 
   // Fix hydration by only rendering date on client
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  console.log(order);
 
   return (
     <Card className="overflow-hidden">
@@ -72,11 +219,7 @@ function OrderCard({ order }: { order: any; onReorder: (order: any) => void }) {
                 >
                   Order {order.orderID}
                 </Link>
-                <Badge
-                  variant={
-                    order.status === "delivered" ? "default" : "secondary"
-                  }
-                >
+                <Badge variant={status.variant || "secondary"}>
                   {status.label}
                 </Badge>
               </div>
@@ -144,10 +287,10 @@ function OrderCard({ order }: { order: any; onReorder: (order: any) => void }) {
           <div className="pt-4 space-y-4">
             <div>
               <h4 className="font-medium mb-3">
-                Order Items ({order.items.length})
+                Order Items ({order.items?.length || 0})
               </h4>
               <div className="space-y-3">
-                {order.items.map((item: any) => {
+                {order.items?.map((item: any) => {
                   return (
                     <div
                       key={item._id}
@@ -155,11 +298,15 @@ function OrderCard({ order }: { order: any; onReorder: (order: any) => void }) {
                     >
                       <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
                         <Image
-                          src={item?.image}
-                          className="h-16 w-16"
-                          height={60}
-                          width={60}
+                          src={item?.image || "/placeholder-image.jpg"}
+                          className="h-16 w-16 object-cover rounded-md"
+                          height={64}
+                          width={64}
                           alt={item.productId?.productName || "Product Image"}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = "/placeholder-image.jpg";
+                          }}
                         />
                       </div>
                       <div className="flex-1">
@@ -190,39 +337,45 @@ function OrderCard({ order }: { order: any; onReorder: (order: any) => void }) {
               <div className="space-y-3">
                 <h4 className="font-medium">Shipping Information</h4>
                 <div className="text-sm text-muted-foreground">
-                  <p>
-                    {order.shippingInformation.firstName}{" "}
-                    {order.shippingInformation.lastName}
-                  </p>
-                  <p>{order.shippingInformation.email}</p>
-                  <p>{order.shippingInformation.phoneNumber}</p>
-                  <p>{order.shippingInformation.streetAddress}</p>
-                  {order.shippingInformation.apartment && (
-                    <p>{order.shippingInformation.apartment}</p>
-                  )}
-                  {order.shippingInformation.city && (
-                    <p>
-                      {order.shippingInformation.city}
-                      {order.shippingInformation.state &&
-                        `, ${order.shippingInformation.state}`}
-                      {order.shippingInformation.zipCode &&
-                        ` ${order.shippingInformation.zipCode}`}
-                    </p>
-                  )}
-                  {!order.shippingInformation.city &&
-                    order.shippingInformation.state && (
+                  {order.shippingInformation ? (
+                    <>
                       <p>
-                        {order.shippingInformation.state}
-                        {order.shippingInformation.zipCode &&
-                          ` ${order.shippingInformation.zipCode}`}
+                        {order.shippingInformation.firstName}{" "}
+                        {order.shippingInformation.lastName}
                       </p>
-                    )}
-                  <p>{order.shippingInformation.country}</p>
-                  {order.shippingInformation.deliveryInstructions && (
-                    <p className="mt-2">
-                      <strong>Delivery Instructions:</strong>{" "}
-                      {order.shippingInformation.deliveryInstructions}
-                    </p>
+                      <p>{order.shippingInformation.email}</p>
+                      <p>{order.shippingInformation.phoneNumber}</p>
+                      <p>{order.shippingInformation.streetAddress}</p>
+                      {order.shippingInformation.apartment && (
+                        <p>{order.shippingInformation.apartment}</p>
+                      )}
+                      {order.shippingInformation.city && (
+                        <p>
+                          {order.shippingInformation.city}
+                          {order.shippingInformation.state &&
+                            `, ${order.shippingInformation.state}`}
+                          {order.shippingInformation.zipCode &&
+                            ` ${order.shippingInformation.zipCode}`}
+                        </p>
+                      )}
+                      {!order.shippingInformation.city &&
+                        order.shippingInformation.state && (
+                          <p>
+                            {order.shippingInformation.state}
+                            {order.shippingInformation.zipCode &&
+                              ` ${order.shippingInformation.zipCode}`}
+                          </p>
+                        )}
+                      <p>{order.shippingInformation.country}</p>
+                      {order.shippingInformation.deliveryInstructions && (
+                        <p className="mt-2">
+                          <strong>Delivery Instructions:</strong>{" "}
+                          {order.shippingInformation.deliveryInstructions}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p>No shipping information available</p>
                   )}
                 </div>
               </div>
@@ -240,7 +393,7 @@ function OrderCard({ order }: { order: any; onReorder: (order: any) => void }) {
                       <span>
                         {order.shipping === 0
                           ? "FREE"
-                          : `${Number(order.shipping).toFixed(2)}`}
+                          : `AED ${Number(order.shipping).toFixed(2)}`}
                       </span>
                     </div>
                   )}

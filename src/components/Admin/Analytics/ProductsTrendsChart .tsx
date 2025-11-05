@@ -24,7 +24,6 @@ interface ProductsTrendsChartProps {
 
 const ProductsTrendsChart = ({ data }: ProductsTrendsChartProps) => {
   const categories = useAppSelector(selectCategories);
-  console.log(data, "Products Trends Charts");
 
   // ✅ Assign consistent colors for each category
   const colorPalette = [
@@ -135,6 +134,7 @@ const ProductsTrendsChart = ({ data }: ProductsTrendsChartProps) => {
                 dataKey={cat.name}
                 fill={categoryColors[cat.name]}
                 radius={4}
+                maxBarSize={20}
               />
             ))}
           </BarChart>

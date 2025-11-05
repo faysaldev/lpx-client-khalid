@@ -9,7 +9,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/UI/chart";
-import { useMemo } from "react";
 
 type UserTrend = {
   date: string;
@@ -21,8 +20,6 @@ interface UsersTrendsChartProps {
 }
 
 const UsersTrendsChart = ({ data }: UsersTrendsChartProps) => {
-  console.log(data, "User Growth Data");
-
   // ✅ Chart configuration
   const chartConfig = {
     totalUsers: {
@@ -68,6 +65,7 @@ const UsersTrendsChart = ({ data }: UsersTrendsChartProps) => {
               dataKey="totalUsers"
               fill="var(--color-totalUsers)"
               radius={8}
+              maxBarSize={20}
             />
           </BarChart>
         </ChartContainer>
